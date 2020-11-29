@@ -14,6 +14,7 @@
    This example code is in the public domain.
 */
 
+#include <MIDI.h>
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
 // Interval time in ???
@@ -50,10 +51,11 @@ const byte O5 = 115;
 const byte YG = 116;
 
 // Create the ports for USB devices plugged into Teensy's 2nd USB port (via hubs)
-USBHost push1;
-USBHub hub1(push1);
-USBHub hub2(push1);
-MIDIDevice push1midi(push1);
+USBHost push1host;
+USBHub hub1(&push1host);
+USBHub hub2(&push1host);
+MIDIDevice push1midiuser(push1host);
+MIDIDevice push1midilive(push1host);
 
 byte pattern[128];
 
@@ -77,11 +79,11 @@ void setup() {
   // use too much power, Teensy at least completes USB enumeration, which
   // makes isolating the power issue easier.
   delay(1500);
-  push1.begin();
-  push1midi.sendNoteOn(27 + 5*8 + 6, Red, 1,1);
-//  push1midi.setHandleNoteOn(myNoteOn);
-//  push1midi.setHandleNoteOff(myNoteOff);
-//  push1midi.setHandleControlChange(myControlChange);
+  push1host.begin();
+  push1midiuser.sendNoteOn(27 + (5*8) + 6, Red, 1,1);
+//  push1hostmidi.setHandleNoteOn(myNoteOn);
+//  push1hostmidi.setHandleNoteOff(myNoteOff);
+//  push1hostmidi.setHandleControlChange(myControlChange);
 
 }
 
@@ -89,16 +91,18 @@ void setup() {
 void loop() {
 
       // Then simply give the data to the MIDI library send()
-//  push1midi.send(type, data1, data2, channel);
+//  push1hostmidi.send(type, data1, data2, channel);
 
-  push1midi.sendNoteOn(27 + 5*8 + 6, Red, 1);
-
+  push1midiuser.sendNoteOn(27 + 5*8 + 6, Red, 0);
+  push1midilive.sendNoteOn(27 + (5*8) + 6, Red, 0);
+  push1midiuser.sendControlChange(59, 5, 0);
+  push1midilive.sendControlChange(59, 4, 0);
 //  setGrid(byte col, byte row, byte colour) {
-//  push1midi.sendNoteOn(27 + row*8 + col, colour, 1);
+//  push1hostmidi.sendNoteOn(27 + row*8 + col, colour, 1);
 //}
 
-//  push1.Task();
-//  push1midi.read();
+//  push1host.Task();
+//  push1midiuser.read();
 
 //  // Sequencer
 //  if (clock_count >= interval_time) {
@@ -106,17 +110,18 @@ void loop() {
 //    clock_count = 0;
 //  }
 
+  delay(1);
   
   bool activity = false;
 
 //  // Next read messages arriving from the USB device plugged into the USB Host port
 //    
-//    if (push1midi.read()) {
-//      uint8_t type =       push1midi.getType();
-//      uint8_t data1 =      push1midi.getData1();
-//      uint8_t data2 =      push1midi.getData2();
-//      uint8_t channel =    push1midi.getChannel();
-//      const uint8_t *sys = push1midi.getSysExArray();
+//    if (push1midiuser.read()) {
+//      uint8_t type =       push1midiuser.getType();
+//      uint8_t data1 =      push1midiuser.getData1();
+//      uint8_t data2 =      push1midiuser.getData2();
+//      uint8_t channel =    push1midiuser.getChannel();
+//      const uint8_t *sys = push1midiuser.getSysExArray();
 //      sendToComputer(type, data1, data2, channel, sys, 0);
 //      activity = true;
 //    }
@@ -135,12 +140,12 @@ void loop() {
     if (type != usbMIDI.SystemExclusive) {
 
       // Then simply give the data to the MIDI library send()
-      push1midi.send(type, data1, data2, channel);
+      push1midiuser.send(type, data1, data2, channel);
 
     } else {
       // SysEx messages are special.  The message length is given in data1 & data2
       unsigned int SysExLength = data1 + data2 * 256;
-      push1midi.sendSysEx(SysExLength, usbMIDI.getSysExArray(), true);
+      push1midiuser.sendSysEx(SysExLength, usbMIDI.getSysExArray(), true);
     }
     activity = true;
   }
@@ -182,7 +187,7 @@ void myNoteOff(byte channel, byte note, byte velocity) {
 }
 
 void myControlChange(byte channel, byte control, byte value) {
-  push1midi.sendControlChange(control, value, channel);
+  push1midiuser.sendControlChange(control, value, channel);
 }
 
 
@@ -213,12 +218,12 @@ void doStep() {
 //  for (int i = 0; i < 8; i ++) {
 //    if (pattern[(i * 16) + step_count] == 1) {
 //      setGrid(step_count, i, O4);
-//      push1midi.sendNoteOn((i * 16) + 15, 127, 1);
+//      push1midiuser.sendNoteOn((i * 16) + 15, 127, 1);
 //      digitalWrite(7 - i , HIGH); 
 //    }
 //    else if (pattern[(i * 16) + step_count] == 2 && round_count == 0) {
 //      setGrid(step_count, i, O4);
-//      push1midi.sendNoteOn((i * 16) + 15, 127, 1);
+//      push1midiuser.sendNoteOn((i * 16) + 15, 127, 1);
 //      digitalWrite(7 - i , HIGH);
 //    }
 //
@@ -245,5 +250,5 @@ void doStep() {
 }
 
 void setGrid(byte col, byte row, byte colour) {
-  push1midi.sendNoteOn(27 + row*8 + col, colour, 1);
+  push1midiuser.sendNoteOn(27 + row*8 + col, colour, 1);
 }
