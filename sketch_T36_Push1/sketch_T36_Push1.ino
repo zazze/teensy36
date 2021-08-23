@@ -9,7 +9,7 @@
    are needed to connect up to 2 USB MIDI devices. 
    This is also a way to test multiporlt USB-midi devices like Ableton Push.
 
-   You must select MIDIx16 from the "Tools > USB Type" menu
+   You mus   select MIDIx16 from the "Tools > USB Type" menu
 
    This example code is in the public domain.
 */
@@ -19,6 +19,8 @@
 // Updated 20210726 by Johan Zetterqvist
 // Updated 20210727 by Johan Zetterqvist
 // Updated 20210729 by Johan Zetterqvist
+// Updated 20210822 by Johan Zetterqvist
+// Updated 20210823 by Johan Zetterqvist
 
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
@@ -64,8 +66,6 @@
 #define SLOW 3
 #define VERYSLOW 4
 
-// Code 
-
 // Create the ports for USB devices plugged into Teensy's 2nd USB port (via hubs)
 
 USBHost myusb;
@@ -75,87 +75,46 @@ MIDIDevice midi01(myusb);
 MIDIDevice midi02(myusb);
 MIDIDevice * midilist[2] = {&midi01, &midi02};
 
+//Global variables
+// Code 
+
 // A variable to know how long the LED has been turned on
 elapsedMillis ledOnMillis;
 
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
 
 void setPadLED(int row, int column, 
             int color = BW, int shade = NORMAL, 
             int transition = STOP, int trspeed = MODERATE) {
               
-//    midi01.sendNoteOn(27 + (row*8) + column, // MIDI-note 
-//                      color + shade, // MIDI-velocity
-//                      transition*5 + trspeed + 1, // MIDI-channel
-//                      1); // MIDI-port
-
     midi01.sendNoteOn(27 + (row*8) + column, // MIDI-note 
                       color + shade, // MIDI-velocity
                       transition*5 + trspeed + 1, // MIDI-channel
                       1 // MIDI Virtual port
                       );
-
-    Serial.print("row=");
-    Serial.print(row, DEC);
-    Serial.print(", column=");
-    Serial.print(column, DEC);
-    Serial.print(", color=");
-    Serial.print(color, DEC);
-    Serial.print(", shade=");
-    Serial.print(shade, DEC);
-    Serial.print(" and velocity=");
-    Serial.print(color, DEC);
-    Serial.println(".");
     
 }
 
-//  // Loop over rows counting from the bottom and up
-//  for (int i = 0; i < 8; i++) {
-//    // Looper over columns counting from left to right
-//    for (int j = 0; j < 8; j++) {
-//      if ((i == 0 || i == 7) && (j == 0 || j == 7)) {
-//        
-//      }
-//      }
-//  }
-
-
 // Standard scale on Push - major and minor scales with
 // increasing rows shifted a fourth. 29 notes spanning 4 octaves
-void set8Scale4ths() {
-  int degree = 1;
-  delay(1500);
-//  int degcol[8] = {5, 9, 13, 17, 21, 25, 
+void set8Scale4ths(uint8_t degree = 1) {
+  delay(500);
     // Loop over rows counting from the bottom and up
     for (int i = 1; i <= 8; i++) {
-      // Looper over columns counting from left to right
+      // Loop over columns counting from left to right
       for (int j = 1; j <= 8; j++) {
         if (degree == 1) {
           setPadLED(i, j, BLUE, NORMAL, STOP, MODERATE);
-//          setPadLED(i, j, 5 + 4*degree, BRIGHT, STOP, MODERATE);
         } else {
           setPadLED(i, j, BW, GREY, STOP, MODERATE);
-//          setPadLED(i, j,  5 + 4*degree, NORMAL, STOP, MODERATE);
-        }
+          }
         degree++;
         degree = degree % 7;
-        delay(50);
+        delay(1);
       }
 //      degree = (degree+1) % 7;
       degree = (degree+2) % 7;
     }
 }
-
-//void setLCD(int row, int column, 
-//            int color = BW, int shade = NORMAL, 
-//            int transition = STOP, int trspeed = MODERATE) {
-
-//  byte sedat[] = {240, 71, 127, 21, 27+1, 0, 0, 247}; // Clear 1st line of LCD
-//  byte sedat[] = {240, 71, 127, 21, 27+2, 0, 0, 247}; // Clear 2nd line of LCD
-//  byte sedat[] = {240, 71, 127, 21, 27+3, 0, 0, 247}; // Clear 3rd line of LCD
-//  midi01.sendSysEx(8, sedat, true);
 
 void clearLCDRow(byte row) {
   byte rowid=27+row;
@@ -163,85 +122,41 @@ void clearLCDRow(byte row) {
   midi01.sendSysEx(8, sedat, true);
 }
 
-
-
-void writeLCDText2Row(uint8_t row, uint8_t startpos, String str) {
-  int nchars = str.length();
-  byte row_b = 23+row, nchars_b = nchars+1, byte1_b, byte2_b, startpos_b;
-  char chbuf[nchars] ;
-  int asciibuf[nchars];  
-  str.toCharArray(chbuf, nchars);
-  byte1_b = chbuf[0];
-  byte2_b = chbuf[1];
-  byte sedat[] = {240, 71, 127, 21, row_b, 0, nchars_b, startpos_b, byte1_b, byte2_b, 247};
-
-//  for (i = 0; i < nchars; i++)
-//  asciibuf = (int)chbuf; 
-  Serial.print("str: ");
-  Serial.println(str);
-  Serial.print("nchars: ");
-  Serial.println(nchars);  
-  Serial.println("chbuf positions 1-2:");
-  Serial.println(chbuf[1]); 
-  Serial.println(chbuf[2]); 
-  
-//  byte sedat[] = {240, 71, 127, 21, 23+row, 0, nchars+1, startpos, (int*) chbuf, 247};
-  Serial.println("sedat positions 0-10:");
-  Serial.println(sedat[0]);
-  Serial.println(sedat[1]);
-  Serial.println(sedat[2]);
-  Serial.println(sedat[3]);
-  Serial.println(sedat[4]);
-  Serial.println(sedat[5]);
-  Serial.println(sedat[6]);
-  Serial.println(sedat[7]);
-  Serial.println(sedat[8]);
-  Serial.println(sedat[9]);
-  Serial.println(sedat[10]);
-  
-  midi01.sendSysEx(11, sedat, true);
-  
+void setLCDChar(uint8_t row = 1, uint8_t col = 1, uint8_t startpos = 1, byte ch_b = 'x') {
+  byte row_b = 23 + row, startpos_b = (col-1)*17 + startpos - 1;
+  byte sedat[] = {240, 71, 127, 21, row_b, 0, 2, startpos_b, ch_b, 247};
+  midi01.sendSysEx(9+1, sedat, true);
 }
 
-void setup() {
-  Serial.begin(115200);
-//  pinMode(13, OUTPUT); // LED pin
-//  digitalWrite(13, LOW);
-  // Wait 1.5 seconds before turning on USB Host.  If connected USB devices
-  // use too much power, Teensy at least completes USB enumeration, which
-  // makes isolating the power issue easier.
-  delay(1500);
-  Serial.println("Push 1 Example");
-  delay(10);
+void writeLCDText(uint8_t row = 1, uint8_t col = 1, uint8_t startpos = 0, String str = "1") {
+  uint8_t nchars = str.length();
+  byte row_b = 23+row, nchars_b = nchars+1, startpos_b = startpos + (col-1)*17 ;
+  byte endbyte[] = {247};
+//  byte sedat[] = {240, 71, 127, 21, row_b, 0, nchars_b, startpos_b, chbuf, 247};
+  byte chbuf[nchars] ;//= {'1','2', '3','4','5','6','7','8','9','1'};
+  str.getBytes(chbuf, nchars);
+  byte initdat[] = {240, 71, 127, 21, row_b, 0, nchars_b, startpos_b};
+  byte sedat[9+nchars];
+  memcpy(sedat, initdat, 8);
+  memcpy(sedat+8, chbuf, nchars);
+  memcpy(sedat+9, endbyte, 1);
 
-  myusb.begin();
-//  MIDI.begin();
+  Serial.print("str=");
+  Serial.print(str);
+//  Serial.print("chbuf=");
+//  Serial.print(chbuf);
 
-  midi01.setHandleNoteOn(myNoteOn);
-
-//    midi01.sendNoteOn(27 + 8*3 + 2, // MIDI-note 
-//                      125, // MIDI-velocity
-//                      6// MIDI-channel
-//                      );
-
-//setPadLED(1, 1, BW, WHITE, STOP, MODERATE);
-//setPadLED(2, 3, CYAN, NORMAL, PULSE, MODERATE);
-//setPadLED(6, 3, CYAN, NORMAL, BLINK, MODERATE);
-//setPadLED(7, 5, OCEAN, BRIGHT, BLINK, MODERATE);
-//setPadLED(6, 3, RED, NORMAL, STOP, MODERATE);
-//setPadLED(6, 4, CYAN, NORMAL, BLINK, MODERATE);
-  delay(2000);
-  set8Scale4ths();
-  delay(500);
-  clearLCDRow(3);
-//  writeLCDText2Row(4, 2, "123456789112345678921234567893");
-  byte ch1 = 'c';
-    byte sedat[] = {240, 71, 127, 21, 27, 0, 2, 0, ch1, 247};
-  
-  midi01.sendSysEx(9+1, sedat, true);
-
-  writeLCDText2Row(2, 3, "12"); 
-
+//  for (int i = 0; i < 8; i++) {
+//    sedat[i] = initdat[i];
+//  }
+//
+//  for (int i = 8; i < 8 + nchars; i++) {
+//    sedat[i] = chbuf[i];
+//  }
+//
+//  sedat[7+nchars] = 247;
+    
+  midi01.sendSysEx(9+nchars, sedat, true);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -276,6 +191,48 @@ void myNoteOn(byte channel, byte note, byte velocity) {
 void sendToComputer(byte type, byte data1, byte data2, byte channel, const uint8_t *sysexarray, byte cable)
 {
     usbMIDI.send(type, data1, data2, channel, cable);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+void setup() {
+  Serial.begin(115200);
+//  pinMode(13, OUTPUT); // LED pin
+//  digitalWrite(13, LOW);
+  // Wait 1.5 seconds before turning on USB Host.  If connected USB devices
+  // use too much power, Teensy at least completes USB enumeration, which
+  // makes isolating the power issue easier.
+  delay(1500);
+  Serial.println("Push 1 Example");
+  delay(10);
+
+  myusb.begin();
+//  MIDI.begin();
+
+  midi01.setHandleNoteOn(myNoteOn);
+
+//    midi01.sendNoteOn(27 + 8*3 + 2, // MIDI-note 
+//                      125, // MIDI-velocity
+//                      6// MIDI-channel
+//                      );
+
+  delay(1000);
+  set8Scale4ths();
+  delay(500);
+  clearLCDRow(1);
+  clearLCDRow(2);
+  clearLCDRow(3);
+  clearLCDRow(4);
+
+  setLCDChar(1, 2, 2, '8');
+  setLCDChar(2, 3, 4, '2');
+
+  writeLCDText(1, 1, 0, "1234567891");
+
+  writeLCDText(2, 2, 0, "1234567891");
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -317,6 +274,7 @@ void loop() {
       // Then simply give the data to the MIDI library send()
 //      midilist[cable]->send(type, data1, data2, channel);
       midi01.send(type, data1, data2, channel);
+      
 
     } else {
       // SysEx messages are special.  The message length is given in data1 & data2
