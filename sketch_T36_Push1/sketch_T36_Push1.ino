@@ -21,6 +21,7 @@
 // Updated 20210729 by Johan Zetterqvist
 // Updated 20210822 by Johan Zetterqvist
 // Updated 20210823 by Johan Zetterqvist
+// Updated 20210824 by Johan Zetterqvist
 
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
@@ -75,9 +76,6 @@ MIDIDevice midi01(myusb);
 MIDIDevice midi02(myusb);
 MIDIDevice * midilist[2] = {&midi01, &midi02};
 
-//Global variables
-// Code 
-
 // A variable to know how long the LED has been turned on
 elapsedMillis ledOnMillis;
 
@@ -111,7 +109,6 @@ void set8Scale4ths(uint8_t degree = 1) {
         degree = degree % 7;
         delay(1);
       }
-//      degree = (degree+1) % 7;
       degree = (degree+2) % 7;
     }
 }
@@ -128,35 +125,60 @@ void setLCDChar(uint8_t row = 1, uint8_t col = 1, uint8_t startpos = 1, byte ch_
   midi01.sendSysEx(9+1, sedat, true);
 }
 
-void writeLCDText(uint8_t row = 1, uint8_t col = 1, uint8_t startpos = 0, String str = "1") {
-  uint8_t nchars = str.length();
-  byte row_b = 23+row, nchars_b = nchars+1, startpos_b = startpos + (col-1)*17 ;
-  byte endbyte[] = {247};
-//  byte sedat[] = {240, 71, 127, 21, row_b, 0, nchars_b, startpos_b, chbuf, 247};
-  byte chbuf[nchars] ;//= {'1','2', '3','4','5','6','7','8','9','1'};
-  str.getBytes(chbuf, nchars);
-  byte initdat[] = {240, 71, 127, 21, row_b, 0, nchars_b, startpos_b};
-  byte sedat[9+nchars];
-  memcpy(sedat, initdat, 8);
-  memcpy(sedat+8, chbuf, nchars);
-  memcpy(sedat+9, endbyte, 1);
+void writeLCDText4x4(uint8_t row = 1, uint8_t col = 1, String str = "default") {
+  uint8_t nchars, i = 0;
+  nchars = min(str.length(), (uint8_t)17);
+  byte sxchars[26] = {180};
+  sxchars[0] = 240;
+  sxchars[1] = 71;
+  sxchars[2] = 127;
+  sxchars[3] = 21;
+  sxchars[4] = row+23;
+  sxchars[5] = 0;
+  sxchars[6] = 18;
+  sxchars[7] = 17*(col-1);
+  sxchars[25] = 247;
 
-  Serial.print("str=");
-  Serial.print(str);
-//  Serial.print("chbuf=");
-//  Serial.print(chbuf);
+  while(i <  nchars) {
+    sxchars[8+i] = str[i];
+    i++;
+  }
+  while(i < 17) {
+    sxchars[8+i] = ' ';
+    i++;
+  }
+  
+  midi01.sendSysEx(26, sxchars, true);
+}
 
-//  for (int i = 0; i < 8; i++) {
-//    sedat[i] = initdat[i];
-//  }
-//
-//  for (int i = 8; i < 8 + nchars; i++) {
-//    sedat[i] = chbuf[i];
-//  }
-//
-//  sedat[7+nchars] = 247;
-    
-  midi01.sendSysEx(9+nchars, sedat, true);
+void writeLCDText4x8(uint8_t row = 1, uint8_t col = 1, String str = "default") {
+  
+  uint8_t nchars, i = 0, block, blockpos, startpos;
+  nchars = min(str.length(), (uint8_t)8);
+  block = col / 2; // Which of the four blocks?
+  blockpos = 1 - (col % 2) ; // Which part of the block? The 1st (0) or 2nd (1)?
+  startpos = 17*(block-1) + 9*blockpos;
+  byte sxchars[17] = {180};
+  sxchars[0] = 240;
+  sxchars[1] = 71;
+  sxchars[2] = 127;
+  sxchars[3] = 21;
+  sxchars[4] = row+23;
+  sxchars[5] = 0;
+  sxchars[6] = 9;
+  sxchars[7] = startpos;
+  sxchars[16] = 247;
+
+  while(i <  nchars) {
+    sxchars[8+i] = str[i];
+    i++;
+  }
+  while(i < 8) {
+    sxchars[8+i] = ' ';
+    i++;
+  }
+  
+  midi01.sendSysEx(17, sxchars, true);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -172,18 +194,6 @@ void myNoteOn(byte channel, byte note, byte velocity) {
 
   
 }
-
-//void setPad(byte pad, byte row, byte col, byte color)
-//{
-//      // Then simply give the data to the MIDI library send()
-//      midilist[cable]->send(type, data1, data2, channel);
-//  
-//}
-
-//void createGrid(int typebyte type, byte data1, byte data2, byte channel, const uint8_t *sysexarray, byte cable)
-//{
-//    usbMIDI.send(type, data1, data2, channel, cable);
-//}
 
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
@@ -209,30 +219,28 @@ void setup() {
   delay(10);
 
   myusb.begin();
-//  MIDI.begin();
 
   midi01.setHandleNoteOn(myNoteOn);
 
-//    midi01.sendNoteOn(27 + 8*3 + 2, // MIDI-note 
-//                      125, // MIDI-velocity
-//                      6// MIDI-channel
-//                      );
-
-  delay(1000);
-  set8Scale4ths();
   delay(500);
+  set8Scale4ths();
+  delay(100);
   clearLCDRow(1);
   clearLCDRow(2);
   clearLCDRow(3);
   clearLCDRow(4);
 
-  setLCDChar(1, 2, 2, '8');
-  setLCDChar(2, 3, 4, '2');
+//  setLCDChar(1, 2, 2, '8');
+//  setLCDChar(2, 3, 4, '2');
+//
+//  writeLCDText4x4(2, 2, "12345678911234567");
+//  writeLCDText4x4();
+//
+//  writeLCDText4x8(3,7,"Hej!");
+//  writeLCDText4x8(4,6,"Hejda!");
 
-  writeLCDText(1, 1, 0, "1234567891");
-
-  writeLCDText(2, 2, 0, "1234567891");
-
+  writeLCDText4x4(2,2,"Teensy 3.6 & Push"); 
+  writeLCDText4x4(2,3,"   by Johan Z");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -293,43 +301,5 @@ void loop() {
   if (ledOnMillis > 15) {
     digitalWriteFast(13, LOW);  // LED off
   }
-
-//  midi01.setHandleNoteOn(myNoteOn);
-//setPadLED(6, 3, RED, NORMAL, STOP, MODERATE);
-//setPadLED(6, 4, CYAN, NORMAL, BLINK, MODERATE);
-//setPadLED(7, 5, OCEAN, BRIGHT, BLINK, MODERATE);
-//setPadLED(1, 1, BW, WHITE, STOP, MODERATE);
-//setPadLED(8, 8, BW, WHITE, BLINK, MODERATE);
-
-//  midi01.sendNoteOn(27 + 8*2 + 2, // MIDI-note 
-//                    125, // MIDI-velocity
-//                    6,1// MIDI-channel
-//                   );
-
-//  midi01.sendNoteOn(27 + 8*2 + 2, // MIDI-note 
-//                    125, // MIDI-velocity
-//                    6// MIDI-channel
-//                   );
-
-//void setPadLED(int row, int column, 
-//            int color = BW, int shade = NORMAL, 
-//            int transition = STOP, int trspeed = MODERATE) {
-//    midi01.sendNoteOn(27 + (row*8) + column, // MIDI-note 
-//                      color + shade, // MIDI-velocity
-//                      transition*5 + trspeed + 1// MIDI-channel
-//                      );
-
-//    midi01.sendNoteOn(27 + (5*8) + 7, // MIDI-note 
-//                      5 + 1, // MIDI-velocity
-//                      6*5 + 0 + 1,// MIDI-channel
-//                      1 // MIDI virtual cable
-//                      );
-//    setPadLED(4,6,5,1,1,0);
-
-//  if(firstrun) {
-//    setPadLED(7,7,5,1,1,0);
-////    set8Scale4ths();
-//    firstrun = false;
-//  }
   
 }
