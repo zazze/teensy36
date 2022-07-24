@@ -22,6 +22,7 @@
 // Updated 20210822 by Johan Zetterqvist
 // Updated 20210823 by Johan Zetterqvist
 // Updated 20210824 by Johan Zetterqvist
+// Updated 20210825 by Johan Zetterqvist
 
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
@@ -113,6 +114,28 @@ void set8Scale4ths(uint8_t degree = 1) {
     }
 }
 
+// Translate degree to integer to add to get midi note number;
+uint8_t degree2MIDIAdd(uint8_t degree, uint8_t scale) {
+  if (degree == 0) {
+    return degree;
+  } else {
+    if (scale == 1) {
+      if (degree < 3) {
+        return degree*2
+      } else {
+        return degree*2 - 1; 
+      }
+    }
+  }
+}
+
+// Translate pressed note to a note in the selected scale and octave
+void create8Scale4thsNotes(uint8_t midival, uint8_t root = 0, int8_t octave = 5, uint8_t scale = 1) {
+  uint8_t newnote;
+  newnote = 12*octave + root + degree2MIDIAdd(degree, scale);
+  , uint8_t root = 1, uint8_t root = 1, ;
+}
+
 void clearLCDRow(byte row) {
   byte rowid=27+row;
   const byte sedat[] = {240, 71, 127, 21, rowid, 0, 0, 247};
@@ -186,13 +209,13 @@ void writeLCDText4x8(uint8_t row = 1, uint8_t col = 1, String str = "default") {
 //////////////////////////////////////////////////////////////////////////////////////
 
 void myNoteOn(byte channel, byte note, byte velocity) {
-      midi01.sendNoteOn(note, // MIDI-note 
-                      21 + 1, // MIDI-velocity
-                      0*5 + 0 + 1,// MIDI-channel
-                      1 // MIDI virtual cable
-                      );
-
-  
+//      midi01.sendNoteOn(note, // MIDI-note 
+//                      21 + 1, // MIDI-velocity
+//                      0*5 + 0 + 1,// MIDI-channel
+//                      1 // MIDI virtual cable
+//                      );
+//
+//  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
