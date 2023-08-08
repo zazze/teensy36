@@ -23,6 +23,7 @@
 // Updated 20210823 by Johan Zetterqvist
 // Updated 20210824 by Johan Zetterqvist
 // Updated 20210825 by Johan Zetterqvist
+// Updated 20230808 by Johan Zetterqvist
 
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
@@ -92,6 +93,28 @@ void setPadLED(int row, int column,
                       );
     
 }
+
+// Chromatic scale on Push - showing what Push 1 actually sends
+// from C1 to D#6
+void setChromaticAll(uint8_t degree = 1) {
+  delay(500);
+    // Loop over rows counting from the bottom and up
+    for (int i = 1; i <= 8; i++) {
+      // Loop over columns counting from left to right
+      for (int j = 1; j <= 8; j++) {
+        if (degree == 1) {
+          setPadLED(i, j, BLUE, NORMAL, STOP, MODERATE);
+        } else {
+          setPadLED(i, j, BW, GREY, STOP, MODERATE);
+          }
+        degree++;
+        degree = degree % 12;
+        delay(1);
+      }
+//      degree = (degree+2) % 7;
+    }
+}
+
 
 // Standard scale on Push - major and minor scales with
 // increasing rows shifted a fourth. 29 notes spanning 4 octaves
@@ -204,6 +227,12 @@ void writeLCDText4x8(uint8_t row = 1, uint8_t col = 1, String str = "default") {
   midi01.sendSysEx(17, sxchars, true);
 }
 
+void initLCDColumn(uint8_t col = 1, String str = "Param")) {
+  writeLCDText4x8(1, col, str);
+  writeLCDText4x8(2, col, "0");
+
+}
+
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
@@ -246,24 +275,30 @@ void setup() {
   midi01.setHandleNoteOn(myNoteOn);
 
   delay(500);
-  set8Scale4ths();
-  delay(100);
-  clearLCDRow(1);
-  clearLCDRow(2);
-  clearLCDRow(3);
-  clearLCDRow(4);
+  // set8Scale4ths();
+  setChromaticAll();
+  delay(50);
+
+  writeLCDText4x8(1, )
+  // clearLCDRow(1);
+  // clearLCDRow(2);
+  // clearLCDRow(3);
+  // clearLCDRow(4);
 
 //  setLCDChar(1, 2, 2, '8');
 //  setLCDChar(2, 3, 4, '2');
 //
 //  writeLCDText4x4(2, 2, "12345678911234567");
 //  writeLCDText4x4();
-//
-//  writeLCDText4x8(3,7,"Hej!");
-//  writeLCDText4x8(4,6,"Hejda!");
 
-  writeLCDText4x4(2,2,"Teensy 3.6 & Push"); 
-  writeLCDText4x4(2,3,"   by Johan Z");
+  // writeLCDText4x4(2,2,"Teensy 3.6 & Push"); 
+  // delay(5);
+  // writeLCDText4x4(2,3,"  by Johan Z");
+  // delay(5);
+
+  // writeLCDText4x8(3,7,"Hej!");
+  // writeLCDText4x8(4,6,"Hejda!");
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
