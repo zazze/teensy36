@@ -7,9 +7,9 @@
    A USB host cable
    is needed on Teensy 3.6's second USB port, and obviously USB hubs
    are needed to connect up to 2 USB MIDI devices. 
-   This is also a way to test multiporlt USB-midi devices like Ableton Push.
+   This is also a way to test multiport USB-midi devices like Ableton Push.
 
-   You mus   select MIDIx16 from the "Tools > USB Type" menu
+   You must select MIDIx16 from the "Tools > USB Type" menu
 
    This example code is in the public domain.
 */
@@ -114,27 +114,27 @@ void set8Scale4ths(uint8_t degree = 1) {
     }
 }
 
-// Translate degree to integer to add to get midi note number;
-uint8_t degree2MIDIAdd(uint8_t degree, uint8_t scale) {
-  if (degree == 0) {
-    return degree;
-  } else {
-    if (scale == 1) {
-      if (degree < 3) {
-        return degree*2
-      } else {
-        return degree*2 - 1; 
-      }
-    }
-  }
-}
+// // Translate degree to integer to add to get midi note number;
+// uint8_t degree2MIDIAdd(uint8_t degree, uint8_t scale) {
+//   if (degree == 0) {
+//     return degree;
+//   } else {
+//     if (scale == 1) {
+//       if (degree < 3) {
+//         return degree*2
+//       } else {
+//         return degree*2 - 1; 
+//       }
+//     }
+//   }
+// }
 
-// Translate pressed note to a note in the selected scale and octave
-void create8Scale4thsNotes(uint8_t midival, uint8_t root = 0, int8_t octave = 5, uint8_t scale = 1) {
-  uint8_t newnote;
-  newnote = 12*octave + root + degree2MIDIAdd(degree, scale);
-  , uint8_t root = 1, uint8_t root = 1, ;
-}
+// // Translate pressed note to a note in the selected scale and octave
+// void create8Scale4thsNotes(uint8_t midival, uint8_t root = 0, int8_t octave = 5, uint8_t scale = 1) {
+//   uint8_t newnote;
+//   newnote = 12*octave + root + degree2MIDIAdd(degree, scale);
+//   , uint8_t root = 1, uint8_t root = 1, ;
+// }
 
 void clearLCDRow(byte row) {
   byte rowid=27+row;
