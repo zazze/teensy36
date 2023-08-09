@@ -227,11 +227,51 @@ void writeLCDText4x8(uint8_t row = 1, uint8_t col = 1, String str = "default") {
   midi01.sendSysEx(17, sxchars, true);
 }
 
-void initLCDColumn(uint8_t col = 1, String str = "Param")) {
-  writeLCDText4x8(1, col, str);
-  writeLCDText4x8(2, col, "0");
+// void initLCDColumn(uint8_t col = 1, String str = "Param") {
+//   writeLCDText4x8(1, col, str);
+//   writeLCDText4x8(2, col, "0");
+// }
 
+void writeLCDBar4x8(uint8_t row = 1, uint8_t col = 1, uint8_t value = 5) { // Value can be 0-16
+  
+  // uint8_t i = 0, block, blockpos, startpos;
+  uint8_t block, blockpos, startpos;
+  block = col / 2; // Which of the four blocks?
+  blockpos = 1 - (col % 2) ; // Which part of the block? The 1st (0) or 2nd (1)?
+  startpos = 17*(block-1) + 9*blockpos;
+  byte sxchars[17] = {180}; // Create an array of sysex chars
+  sxchars[0] = 240;
+  sxchars[1] = 71;
+  sxchars[2] = 127;
+  sxchars[3] = 21;
+  sxchars[4] = row+23;
+  sxchars[5] = 0;
+  sxchars[6] = 9;
+  sxchars[7] = startpos;
+  sxchars[16] = 247;
+
+  sxchars[8] = 169;
+  sxchars[9] = 170;
+  sxchars[10] = 171;
+  sxchars[11] = 172;
+  sxchars[12] = 173;
+  sxchars[13] = 174;
+  sxchars[14] = 175;
+  sxchars[15] = 176;
+
+  // while(i <  (value+1)) {
+  //   sxchars[8+i] = ;
+  //   i++;
+  // }
+  // while(i < 8) {
+  //   sxchars[8+i] = ' ';
+  //   i++;
+  // }
+  
+  midi01.sendSysEx(17, sxchars, true);
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
@@ -279,7 +319,9 @@ void setup() {
   setChromaticAll();
   delay(50);
 
-  writeLCDText4x8(1, )
+  writeLCDBar4x8(2, 2, 2);
+  // initLCDColumn(1);
+  // initLCDColumn(1, "Param 1");
   // clearLCDRow(1);
   // clearLCDRow(2);
   // clearLCDRow(3);
