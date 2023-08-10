@@ -24,6 +24,8 @@
 // Updated 20210824 by Johan Zetterqvist
 // Updated 20210825 by Johan Zetterqvist
 // Updated 20230808 by Johan Zetterqvist
+// Updated 20230809 by Johan Zetterqvist
+// Updated 20230810 by Johan Zetterqvist
 
 #include <USBHost_t36.h> // access to USB MIDI devices (plugged into 2nd USB port)
 
@@ -227,10 +229,10 @@ void writeLCDText4x8(uint8_t row = 1, uint8_t col = 1, String str = "default") {
   midi01.sendSysEx(17, sxchars, true);
 }
 
-// void initLCDColumn(uint8_t col = 1, String str = "Param") {
-//   writeLCDText4x8(1, col, str);
-//   writeLCDText4x8(2, col, "0");
-// }
+void initLCDColumn(uint8_t col = 1, String str = "Param") {
+  writeLCDText4x8(1, col, str);
+  writeLCDText4x8(2, col, "0");
+}
 
 void writeLCDBar4x8(uint8_t row = 1, uint8_t col = 1, uint8_t value = 5) { // Value can be 0-16
   
@@ -320,8 +322,9 @@ void setup() {
   delay(50);
 
   writeLCDBar4x8(2, 2, 2);
+  delay(50);
   // initLCDColumn(1);
-  // initLCDColumn(1, "Param 1");
+  initLCDColumn(1, "Param 1");
   // clearLCDRow(1);
   // clearLCDRow(2);
   // clearLCDRow(3);
